@@ -1,73 +1,82 @@
 <template>
-  <div class="container">
-    <div>
-      <Logo />
-      <h1 class="title">
-        shopify-portal-nuxt11
-      </h1>
-      <div class="links">
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="button--green"
-        >
-          Documentation
-        </a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="button--grey"
-        >
-          GitHub
-        </a>
-      </div>
+  <div id="app">
+    <Header />
+    <SideBar @sync="getOrders"/>
+    <div class="main-content">
+      <div v-if="!loaded">Loading...</div>
+      <router-link to="/ordersPage">Orders</router-link>
+      <!-- <keep-alive> -->
+        <component :is="component" v-if="loaded" />
+        <router-view/>
+      <!-- </keep-alive> -->
     </div>
+    <SelectedBar v-if="showCompletedBar" />
+    <Snackbar />
   </div>
 </template>
 
 <script>
-export default {}
+  import OrdersPage from './OrdersPage.vue';
+  import ProductsPage from './ProductsPage.vue';
+  import SideBar from '../components/SideBar.vue';
+  import Header from '../components/Header.vue';
+  import SelectedBar from '../components/SelectedBar.vue';
+  import Snackbar from '../components/Snackbar.vue';
+
+  export default {
+    name: 'App',
+    components: {
+      OrdersPage,
+      ProductsPage,
+      SideBar,
+      Header,
+      SelectedBar,
+      Snackbar
+    },
+    data() {
+      return {
+        loaded: false,
+      }
+    },
+
+    methods: {
+      getOrders() {
+        this.loaded = false;
+        this.$store.dispatch('getOrders').then(() => this.loaded = true);
+      }
+    },
+
+    computed: {
+      component() {
+        return `${this.$store.getters.curPage}Page`
+      },
+
+      showCompletedBar() {
+        return this.$store.getters.ordersReadyToComplete.length
+      }
+    },
+
+    created() {
+      this.getOrders();
+    },
+  }
 </script>
 
 <style>
-.container {
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
+  #app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+    overflow: hidden;
+  }
 
-.title {
-  font-family:
-    'Quicksand',
-    'Source Sans Pro',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
-
-.links {
-  padding-top: 15px;
-}
+  .main-content {
+    margin-left: 200px;
+    padding: 50px 50px;
+    overflow-y: auto;
+  }
 </style>
+
